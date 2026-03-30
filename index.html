@@ -1,198 +1,997 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Nexus Interactive</title>
-    <style>
-        /* CSS: Styling and Layout */
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Prevents scrollbars */
-            background-color: #050505; /* Deep space black */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        #canvas {
-            display: block;
-        }
-        
-        .overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #fff;
-            pointer-events: none; /* Allows the mouse to interact with the canvas behind the text */
-        }
-        
-        h1 {
-            font-size: 4.5rem;
-            letter-spacing: 8px;
-            margin: 0;
-            text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8), 0 0 40px rgba(0, 255, 255, 0.5);
-        }
-        
-        p {
-            font-size: 1.2rem;
-            letter-spacing: 3px;
-            color: #aaaaaa;
-            margin-top: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Project Intake — Let's Build Your Site</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+--ink: #0f0e0c;
+--paper: #faf8f4;
+--cream: #f2ede3;
+--gold: #c9a84c;
+--gold-light: #e8d49a;
+--muted: #7a7060;
+--border: #ddd8cc;
+--white: #ffffff;
+--success: #3d7a5c;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘DM Sans’, sans-serif;
+background: var(–paper);
+color: var(–ink);
+min-height: 100vh;
+position: relative;
+overflow-x: hidden;
+}
+
+/* Texture overlay */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘300’ height=‘300’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘300’ height=‘300’ filter=‘url(%23n)’ opacity=‘0.03’/%3E%3C/svg%3E”);
+pointer-events: none;
+z-index: 0;
+}
+
+.hero {
+background: var(–ink);
+color: var(–white);
+padding: 72px 40px 60px;
+text-align: center;
+position: relative;
+overflow: hidden;
+}
+
+.hero::after {
+content: ‘’;
+position: absolute;
+bottom: 0; left: 0; right: 0;
+height: 3px;
+background: linear-gradient(90deg, transparent, var(–gold), transparent);
+}
+
+.hero-eyebrow {
+font-family: ‘DM Sans’, sans-serif;
+font-size: 11px;
+font-weight: 500;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+color: var(–gold);
+margin-bottom: 20px;
+opacity: 0;
+animation: fadeUp 0.6s ease forwards 0.1s;
+}
+
+.hero h1 {
+font-family: ‘Playfair Display’, serif;
+font-size: clamp(36px, 5vw, 64px);
+font-weight: 700;
+line-height: 1.1;
+margin-bottom: 20px;
+opacity: 0;
+animation: fadeUp 0.6s ease forwards 0.2s;
+}
+
+.hero h1 em {
+font-style: italic;
+color: var(–gold-light);
+}
+
+.hero p {
+font-size: 16px;
+font-weight: 300;
+color: rgba(255,255,255,0.65);
+max-width: 480px;
+margin: 0 auto 32px;
+line-height: 1.7;
+opacity: 0;
+animation: fadeUp 0.6s ease forwards 0.3s;
+}
+
+.hero-badge {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+background: rgba(201,168,76,0.15);
+border: 1px solid rgba(201,168,76,0.3);
+color: var(–gold-light);
+font-size: 13px;
+padding: 8px 18px;
+border-radius: 100px;
+opacity: 0;
+animation: fadeUp 0.6s ease forwards 0.4s;
+}
+
+.hero-badge::before {
+content: ‘⏱’;
+font-size: 14px;
+}
+
+.form-container {
+max-width: 720px;
+margin: 0 auto;
+padding: 60px 24px 100px;
+position: relative;
+z-index: 1;
+}
+
+.section {
+margin-bottom: 56px;
+opacity: 0;
+transform: translateY(24px);
+animation: fadeUp 0.5s ease forwards;
+}
+
+.section:nth-child(1) { animation-delay: 0.1s; }
+.section:nth-child(2) { animation-delay: 0.2s; }
+.section:nth-child(3) { animation-delay: 0.3s; }
+.section:nth-child(4) { animation-delay: 0.4s; }
+.section:nth-child(5) { animation-delay: 0.5s; }
+.section:nth-child(6) { animation-delay: 0.6s; }
+.section:nth-child(7) { animation-delay: 0.7s; }
+
+.section-header {
+display: flex;
+align-items: baseline;
+gap: 14px;
+margin-bottom: 28px;
+padding-bottom: 16px;
+border-bottom: 1px solid var(–border);
+}
+
+.section-num {
+font-family: ‘Playfair Display’, serif;
+font-size: 13px;
+color: var(–gold);
+font-weight: 400;
+min-width: 24px;
+}
+
+.section-title {
+font-family: ‘Playfair Display’, serif;
+font-size: 22px;
+font-weight: 700;
+color: var(–ink);
+}
+
+.section-subtitle {
+font-size: 13px;
+color: var(–muted);
+font-weight: 300;
+margin-left: auto;
+font-style: italic;
+}
+
+.field-group {
+display: grid;
+gap: 20px;
+}
+
+.field-row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+}
+
+@media (max-width: 580px) {
+.field-row { grid-template-columns: 1fr; }
+.hero { padding: 48px 20px 44px; }
+}
+
+.field {
+display: flex;
+flex-direction: column;
+gap: 7px;
+}
+
+label {
+font-size: 12px;
+font-weight: 500;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+color: var(–muted);
+}
+
+label .req {
+color: var(–gold);
+margin-left: 2px;
+}
+
+label .opt {
+font-weight: 300;
+font-style: italic;
+text-transform: none;
+letter-spacing: 0;
+color: #aaa;
+margin-left: 4px;
+font-size: 11px;
+}
+
+input[type=“text”],
+input[type=“email”],
+input[type=“tel”],
+input[type=“url”],
+select,
+textarea {
+font-family: ‘DM Sans’, sans-serif;
+font-size: 15px;
+font-weight: 400;
+color: var(–ink);
+background: var(–white);
+border: 1.5px solid var(–border);
+border-radius: 8px;
+padding: 13px 16px;
+width: 100%;
+transition: border-color 0.2s, box-shadow 0.2s;
+outline: none;
+-webkit-appearance: none;
+}
+
+input::placeholder, textarea::placeholder {
+color: #b8b0a4;
+font-weight: 300;
+font-style: italic;
+font-size: 14px;
+}
+
+input:focus, select:focus, textarea:focus {
+border-color: var(–gold);
+box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+}
+
+textarea {
+resize: vertical;
+min-height: 110px;
+line-height: 1.6;
+}
+
+select {
+cursor: pointer;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘16’ height=‘16’ viewBox=‘0 0 24 24’ fill=‘none’ stroke=’%237a7060’ stroke-width=‘2’%3E%3Cpath d=‘M6 9l6 6 6-6’/%3E%3C/svg%3E”);
+background-repeat: no-repeat;
+background-position: right 14px center;
+padding-right: 40px;
+}
+
+.hint {
+font-size: 12px;
+color: var(–muted);
+font-weight: 300;
+line-height: 1.5;
+}
+
+.hint strong {
+color: var(–ink);
+font-weight: 500;
+}
+
+/* Deal cards */
+.deal-card {
+background: var(–white);
+border: 1.5px solid var(–border);
+border-radius: 12px;
+padding: 24px;
+margin-bottom: 16px;
+position: relative;
+transition: border-color 0.2s;
+}
+
+.deal-card:focus-within {
+border-color: var(–gold);
+}
+
+.deal-label {
+font-family: ‘Playfair Display’, serif;
+font-size: 13px;
+font-weight: 700;
+color: var(–gold);
+margin-bottom: 18px;
+letter-spacing: 0.05em;
+}
+
+.add-deal-btn {
+display: flex;
+align-items: center;
+gap: 8px;
+background: none;
+border: 1.5px dashed var(–border);
+color: var(–muted);
+font-family: ‘DM Sans’, sans-serif;
+font-size: 14px;
+padding: 14px 20px;
+border-radius: 8px;
+cursor: pointer;
+width: 100%;
+justify-content: center;
+transition: border-color 0.2s, color 0.2s;
+font-weight: 400;
+}
+
+.add-deal-btn:hover {
+border-color: var(–gold);
+color: var(–ink);
+}
+
+/* Testimonial cards */
+.testimonial-card {
+background: var(–cream);
+border-radius: 12px;
+padding: 24px;
+margin-bottom: 16px;
+border: 1.5px solid transparent;
+transition: border-color 0.2s;
+}
+
+.testimonial-card:focus-within {
+border-color: var(–gold);
+}
+
+/* Radio/checkbox groups */
+.choice-group {
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+}
+
+.choice-chip {
+display: none;
+}
+
+.choice-chip + label {
+font-size: 13px;
+font-weight: 400;
+letter-spacing: 0;
+text-transform: none;
+color: var(–ink);
+background: var(–white);
+border: 1.5px solid var(–border);
+border-radius: 100px;
+padding: 9px 18px;
+cursor: pointer;
+transition: all 0.15s;
+user-select: none;
+}
+
+.choice-chip:checked + label {
+background: var(–ink);
+color: var(–white);
+border-color: var(–ink);
+}
+
+.choice-chip + label:hover {
+border-color: var(–gold);
+}
+
+/* File upload */
+.upload-zone {
+border: 1.5px dashed var(–border);
+border-radius: 8px;
+padding: 32px 20px;
+text-align: center;
+cursor: pointer;
+transition: border-color 0.2s, background 0.2s;
+background: var(–white);
+position: relative;
+}
+
+.upload-zone:hover {
+border-color: var(–gold);
+background: #fdfaf4;
+}
+
+.upload-zone input {
+position: absolute;
+inset: 0;
+opacity: 0;
+cursor: pointer;
+width: 100%;
+height: 100%;
+}
+
+.upload-icon {
+font-size: 28px;
+margin-bottom: 10px;
+display: block;
+}
+
+.upload-text {
+font-size: 14px;
+color: var(–muted);
+font-weight: 300;
+}
+
+.upload-text strong {
+color: var(–gold);
+font-weight: 500;
+}
+
+/* Important callout */
+.callout {
+background: linear-gradient(135deg, #fdf8ec, #faf3dc);
+border: 1px solid var(–gold-light);
+border-left: 4px solid var(–gold);
+border-radius: 8px;
+padding: 16px 20px;
+margin-bottom: 24px;
+font-size: 13px;
+color: #6b5a20;
+line-height: 1.6;
+}
+
+.callout strong {
+display: block;
+font-weight: 600;
+margin-bottom: 4px;
+font-size: 13px;
+}
+
+/* Progress */
+.progress-bar {
+position: fixed;
+top: 0; left: 0;
+height: 3px;
+background: linear-gradient(90deg, var(–gold), var(–gold-light));
+width: 0%;
+transition: width 0.3s ease;
+z-index: 1000;
+}
+
+/* Submit */
+.submit-section {
+text-align: center;
+padding-top: 20px;
+}
+
+.submit-btn {
+font-family: ‘DM Sans’, sans-serif;
+font-size: 16px;
+font-weight: 500;
+letter-spacing: 0.02em;
+color: var(–ink);
+background: var(–gold);
+border: none;
+border-radius: 8px;
+padding: 18px 52px;
+cursor: pointer;
+transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+position: relative;
+overflow: hidden;
+}
+
+.submit-btn::after {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: rgba(255,255,255,0);
+transition: background 0.15s;
+}
+
+.submit-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 28px rgba(201,168,76,0.35);
+background: #d4a83a;
+}
+
+.submit-btn:active {
+transform: translateY(0);
+}
+
+.submit-note {
+font-size: 13px;
+color: var(–muted);
+font-weight: 300;
+margin-top: 16px;
+font-style: italic;
+}
+
+/* Success */
+.success-screen {
+display: none;
+text-align: center;
+padding: 80px 24px;
+max-width: 500px;
+margin: 0 auto;
+}
+
+.success-screen.visible {
+display: block;
+animation: fadeUp 0.5s ease forwards;
+}
+
+.success-icon {
+width: 72px;
+height: 72px;
+background: var(–ink);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 28px;
+font-size: 28px;
+}
+
+.success-screen h2 {
+font-family: ‘Playfair Display’, serif;
+font-size: 32px;
+margin-bottom: 16px;
+}
+
+.success-screen p {
+font-size: 16px;
+color: var(–muted);
+line-height: 1.7;
+font-weight: 300;
+}
+
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* Divider */
+hr.fancy {
+border: none;
+height: 1px;
+background: linear-gradient(90deg, transparent, var(–border), transparent);
+margin: 8px 0 28px;
+}
+</style>
+
 </head>
 <body>
 
-    <div class="overlay">
-        <h1>Cosmic Nexus</h1>
-        <p>Move your mouse to interact with the network</p>
-    </div>
+<div class="progress-bar" id="progressBar"></div>
 
-    <canvas id="canvas"></canvas>
+<div class="hero">
+<p class="hero-eyebrow">Website Project Intake</p>
+<h1>Let's Build Your<br><em>Dream Website</em></h1>
+<p>Share your details below and we'll handle everything. The more you give us, the better your site performs.</p>
+<div class="hero-badge">Takes about 10 minutes to complete</div>
+</div>
 
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let particlesArray;
+<div class="form-container" id="formContainer">
+<form id="intakeForm" novalidate>
 
-        // Set canvas to full screen
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+```
+<!-- SECTION 1: Your Brand -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">01</span>
+<span class="section-title">Your Brand</span>
+<span class="section-subtitle">The basics</span>
+</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field">
+<label>Your Name <span class="req">*</span></label>
+<input type="text" name="name" placeholder="Jane Smith" required>
+</div>
+<div class="field">
+<label>Business Name <span class="req">*</span></label>
+<input type="text" name="business" placeholder="Smith Realty Group" required>
+</div>
+</div>
+<div class="field">
+<label>Your One-Liner <span class="opt">optional but powerful</span></label>
+<input type="text" name="tagline" placeholder="e.g. I help first-time buyers win in competitive markets">
+</div>
+<div class="field-row">
+<div class="field">
+<label>Phone <span class="req">*</span></label>
+<input type="tel" name="phone" placeholder="(555) 000-0000" required>
+</div>
+<div class="field">
+<label>Email <span class="req">*</span></label>
+<input type="email" name="email" placeholder="jane@smithrealty.com" required>
+</div>
+</div>
+<div class="field">
+<label>Social Media Links <span class="opt">paste any that apply</span></label>
+<input type="text" name="social" placeholder="Instagram, Facebook, Zillow, LinkedIn...">
+</div>
+</div>
+</div>
 
-        // Track mouse position
-        let mouse = {
-            x: null,
-            y: null,
-            radius: (canvas.height / 80) * (canvas.width / 80)
-        }
+<!-- SECTION 2: Your Story -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">02</span>
+<span class="section-title">Your Story</span>
+<span class="section-subtitle">Builds trust instantly</span>
+</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field">
+<label>Years in Real Estate <span class="req">*</span></label>
+<input type="text" name="years" placeholder="e.g. 8 years" required>
+</div>
+<div class="field">
+<label>Areas You Serve <span class="req">*</span></label>
+<input type="text" name="areas" placeholder="e.g. Austin, Cedar Park, Round Rock" required>
+</div>
+</div>
+<div class="field">
+<label>About You <span class="req">*</span></label>
+<textarea name="bio" placeholder="Tell us your story — how you got into real estate, what drives you, and what makes you different from other agents. 3–5 sentences is perfect." required></textarea>
+</div>
+<div class="field">
+<label>Awards, Certifications, or Stats <span class="opt">optional</span></label>
+<input type="text" name="awards" placeholder="e.g. Top 5% in sales volume 2023, Certified Negotiation Expert">
+</div>
+</div>
+</div>
 
-        window.addEventListener('mousemove', function(event) {
-            mouse.x = event.x;
-            mouse.y = event.y;
-        });
+<!-- SECTION 3: Past Deals -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">03</span>
+<span class="section-title">Your Best Deals</span>
+<span class="section-subtitle">The #1 thing that converts visitors</span>
+</div>
 
-        // Create Particle blueprint
-        class Particle {
-            constructor(x, y, directionX, directionY, size, color) {
-                this.x = x;
-                this.y = y;
-                this.directionX = directionX;
-                this.directionY = directionY;
-                this.size = size;
-                this.color = color;
-            }
-            // Method to draw individual particle
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = '#00ffff';
-                ctx.fill();
-            }
-            // Check particle position, calculate mouse interaction, move particle
-            update() {
-                // Keep particles inside the screen
-                if (this.x > canvas.width || this.x < 0) {
-                    this.directionX = -this.directionX;
-                }
-                if (this.y > canvas.height || this.y < 0) {
-                    this.directionY = -this.directionY;
-                }
+<div class="callout">
+<strong>⭐ This section matters most.</strong>
+Real results are what turn website visitors into leads. Add 3–5 deals you're proud of. No professional photos? MLS photos work great.
+</div>
 
-                // Collision detection between mouse and particle
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx*dx + dy*dy);
-                
-                if (distance < mouse.radius + this.size) {
-                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) {
-                        this.x += 10;
-                    }
-                    if (mouse.x > this.x && this.x > this.size * 10) {
-                        this.x -= 10;
-                    }
-                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) {
-                        this.y += 10;
-                    }
-                    if (mouse.y > this.y && this.y > this.size * 10) {
-                        this.y -= 10;
-                    }
-                }
-                
-                // Move particle
-                this.x += this.directionX;
-                this.y += this.directionY;
-                // Draw particle
-                this.draw();
-            }
-        }
+<div id="dealsList">
+<div class="deal-card">
+<div class="deal-label">Deal #1</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field">
+<label>Location</label>
+<input type="text" name="deal1_location" placeholder="e.g. Austin, TX">
+</div>
+<div class="field">
+<label>Property Type</label>
+<select name="deal1_type">
+<option value="">Select type...</option>
+<option>Single Family Home</option>
+<option>Condo / Townhouse</option>
+<option>Multi-Family</option>
+<option>Luxury Home</option>
+<option>Land / Lot</option>
+<option>Commercial</option>
+</select>
+</div>
+</div>
+<div class="field-row">
+<div class="field">
+<label>Bought or Sold?</label>
+<select name="deal1_side">
+<option value="">Select...</option>
+<option>Sold (Represented Seller)</option>
+<option>Bought (Represented Buyer)</option>
+<option>Both Sides</option>
+</select>
+</div>
+<div class="field">
+<label>Sale Price <span class="opt">optional</span></label>
+<input type="text" name="deal1_price" placeholder="e.g. $485,000">
+</div>
+</div>
+<div class="field">
+<label>The Story in One Line</label>
+<input type="text" name="deal1_story" placeholder="e.g. Multiple offers in 48 hrs, sold $22K over asking">
+</div>
+<div class="field">
+<label>Photos <span class="opt">optional</span></label>
+<div class="upload-zone">
+<input type="file" name="deal1_photos" accept="image/*" multiple>
+<span class="upload-icon">🏡</span>
+<p class="upload-text"><strong>Click to upload photos</strong> or drag & drop<br>JPG, PNG — up to 10 files</p>
+</div>
+</div>
+</div>
+</div>
+</div>
 
-        // Create particle array
-        function init() {
-            particlesArray = [];
-            let numberOfParticles = (canvas.height * canvas.width) / 9000;
-            for (let i = 0; i < numberOfParticles; i++) {
-                let size = (Math.random() * 2) + 1;
-                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                let directionX = (Math.random() * 2) - 1;
-                let directionY = (Math.random() * 2) - 1;
-                let color = '#00ffff';
+<button type="button" class="add-deal-btn" onclick="addDeal()">
++ Add Another Deal
+</button>
+</div>
 
-                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
-            }
-        }
+<!-- SECTION 4: Testimonials -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">04</span>
+<span class="section-title">Client Reviews</span>
+<span class="section-subtitle">Your best salespeople</span>
+</div>
 
-        // Draw lines between particles that are close enough
-        function connect() {
-            let opacityValue = 1;
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
-                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    
-                    if (distance < (canvas.width/7) * (canvas.height/7)) {
-                        opacityValue = 1 - (distance/20000);
-                        ctx.strokeStyle = 'rgba(0, 255, 255,' + opacityValue + ')';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
+<div id="testimonialsList">
+<div class="testimonial-card">
+<div class="deal-label" style="margin-bottom:16px">Review #1</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field">
+<label>Client Name or Initials</label>
+<input type="text" name="test1_name" placeholder="e.g. Sarah M.">
+</div>
+<div class="field">
+<label>Source <span class="opt">optional</span></label>
+<select name="test1_source">
+<option value="">Where is this from?</option>
+<option>Google</option>
+<option>Zillow</option>
+<option>Realtor.com</option>
+<option>Text / Email</option>
+<option>Facebook</option>
+<option>Other</option>
+</select>
+</div>
+</div>
+<div class="field">
+<label>Their Quote</label>
+<textarea name="test1_quote" style="min-height:80px" placeholder="Paste the review here — copy directly from Google, Zillow, or a text message..."></textarea>
+</div>
+</div>
+</div>
+</div>
 
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
-            ctx.clearRect(0, 0, innerWidth, innerHeight);
+<button type="button" class="add-deal-btn" onclick="addTestimonial()">
++ Add Another Review
+</button>
 
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-            connect();
-        }
+<p class="hint" style="margin-top:14px">💡 <strong>Don't have reviews yet?</strong> We'll show you a simple system to collect them fast after launch.</p>
+</div>
 
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            canvas.width = innerWidth;
-            canvas.height = innerHeight;
-            mouse.radius = ((innerHeight/80) * (innerWidth/80));
-            init();
-        });
+<!-- SECTION 5: Your Goals -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">05</span>
+<span class="section-title">Site Goals</span>
+<span class="section-subtitle">So we design for results</span>
+</div>
+<div class="field-group">
+<div class="field">
+<label>Primary Call to Action <span class="req">*</span></label>
+<p class="hint" style="margin-bottom:10px">What should visitors do first when they land on your site?</p>
+<div class="choice-group">
+<input class="choice-chip" type="radio" name="cta" id="cta1" value="Call Me">
+<label for="cta1">📞 Call Me</label>
+<input class="choice-chip" type="radio" name="cta" id="cta2" value="Text Me">
+<label for="cta2">💬 Text Me</label>
+<input class="choice-chip" type="radio" name="cta" id="cta3" value="Book a Consultation">
+<label for="cta3">📅 Book a Consultation</label>
+<input class="choice-chip" type="radio" name="cta" id="cta4" value="View My Listings">
+<label for="cta4">🏠 View My Listings</label>
+<input class="choice-chip" type="radio" name="cta" id="cta5" value="Request a Home Valuation">
+<label for="cta5">📊 Home Valuation</label>
+</div>
+</div>
+<div class="field">
+<label>Who Do You Primarily Work With? <span class="req">*</span></label>
+<div class="choice-group">
+<input class="choice-chip" type="checkbox" id="cl1" name="clientType" value="Buyers">
+<label for="cl1">Buyers</label>
+<input class="choice-chip" type="checkbox" id="cl2" name="clientType" value="Sellers">
+<label for="cl2">Sellers</label>
+<input class="choice-chip" type="checkbox" id="cl3" name="clientType" value="First-Time Buyers">
+<label for="cl3">First-Time Buyers</label>
+<input class="choice-chip" type="checkbox" id="cl4" name="clientType" value="Investors">
+<label for="cl4">Investors</label>
+<input class="choice-chip" type="checkbox" id="cl5" name="clientType" value="Luxury">
+<label for="cl5">Luxury</label>
+<input class="choice-chip" type="checkbox" id="cl6" name="clientType" value="Relocations">
+<label for="cl6">Relocations</label>
+</div>
+</div>
+<div class="field">
+<label>What Are You Best At?</label>
+<textarea name="strengths" style="min-height:80px" placeholder="e.g. Negotiation, fast sales, finding off-market deals, working with nervous first-timers..."></textarea>
+</div>
+<div class="field">
+<label>Competitors or Sites You Want to Outperform <span class="opt">optional</span></label>
+<input type="text" name="competitors" placeholder="Paste URLs or names of local agents you're competing with">
+</div>
+</div>
+</div>
 
-        // Remove mouse position when leaving screen
-        window.addEventListener('mouseout', function() {
-            mouse.x = undefined;
-            mouse.y = undefined;
-        });
+<!-- SECTION 6: Design Preferences -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">06</span>
+<span class="section-title">Design Preferences</span>
+<span class="section-subtitle">Optional but helpful</span>
+</div>
+<div class="field-group">
+<div class="field">
+<label>Vibe / Style</label>
+<div class="choice-group">
+<input class="choice-chip" type="radio" name="vibe" id="v1" value="Modern & Clean">
+<label for="v1">Modern & Clean</label>
+<input class="choice-chip" type="radio" name="vibe" id="v2" value="Luxury & High-End">
+<label for="v2">Luxury & High-End</label>
+<input class="choice-chip" type="radio" name="vibe" id="v3" value="Warm & Approachable">
+<label for="v3">Warm & Approachable</label>
+<input class="choice-chip" type="radio" name="vibe" id="v4" value="Bold & Eye-Catching">
+<label for="v4">Bold & Eye-Catching</label>
+<input class="choice-chip" type="radio" name="vibe" id="v5" value="Classic & Traditional">
+<label for="v5">Classic & Traditional</label>
+</div>
+</div>
+<div class="field">
+<label>Brand Colors <span class="opt">optional</span></label>
+<input type="text" name="colors" placeholder="e.g. Navy blue and gold, or just 'I don't have any yet'">
+</div>
+<div class="field">
+<label>Websites You Like <span class="opt">optional</span></label>
+<input type="text" name="inspo" placeholder="Paste any URLs — real estate or otherwise — that you like the look of">
+</div>
+</div>
+</div>
 
-        init();
-        animate();
-    </script>
+<!-- SECTION 7: Photos -->
+<div class="section">
+<div class="section-header">
+<span class="section-num">07</span>
+<span class="section-title">Your Photos</span>
+<span class="section-subtitle">First impressions count</span>
+</div>
+<div class="field-group">
+<div class="field">
+<label>Your Headshot</label>
+<div class="upload-zone">
+<input type="file" name="headshot" accept="image/*">
+<span class="upload-icon">📸</span>
+<p class="upload-text"><strong>Upload your headshot</strong> or drag & drop<br>Professional preferred — but a clear phone photo works too</p>
+</div>
+</div>
+<div class="field">
+<label>Team Photos <span class="opt">if applicable</span></label>
+<div class="upload-zone">
+<input type="file" name="team_photos" accept="image/*" multiple>
+<span class="upload-icon">👥</span>
+<p class="upload-text"><strong>Upload team photos</strong> or drag & drop<br>Optional — skip if you're a solo agent</p>
+</div>
+</div>
+<div class="field">
+<label>Anything Else We Should Know <span class="opt">optional</span></label>
+<textarea name="notes" style="min-height:80px" placeholder="Special requests, deadline, referral source, questions for us..."></textarea>
+</div>
+</div>
+</div>
+
+<hr class="fancy">
+
+<!-- Submit -->
+<div class="submit-section">
+<p style="font-family:'Playfair Display',serif; font-size:20px; margin-bottom:8px; font-weight:700;">Ready to go live?</p>
+<p style="font-size:14px; color:var(--muted); font-weight:300; margin-bottom:28px;">Hit submit and we'll review everything within 24 hours.</p>
+<button type="submit" class="submit-btn">Submit My Info →</button>
+<p class="submit-note">We'll follow up within 1 business day to confirm receipt and next steps.</p>
+</div>
+```
+
+</form>
+
+<div class="success-screen" id="successScreen">
+<div class="success-icon">✓</div>
+<h2>You're all set.</h2>
+<p>We've received your info and will be in touch within <strong>1 business day</strong> to confirm receipt and share your project timeline.<br><br>Get ready — your new site is going to look incredible.</p>
+</div>
+</div>
+
+<script>
+let dealCount = 1;
+let testimonialCount = 1;
+
+function addDeal() {
+dealCount++;
+const container = document.getElementById('dealsList');
+const card = document.createElement('div');
+card.className = 'deal-card';
+card.innerHTML = `
+<div class="deal-label">Deal #${dealCount}</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field">
+<label>Location</label>
+<input type="text" name="deal${dealCount}_location" placeholder="e.g. Austin, TX">
+</div>
+<div class="field">
+<label>Property Type</label>
+<select name="deal${dealCount}_type">
+<option value="">Select type...</option>
+<option>Single Family Home</option>
+<option>Condo / Townhouse</option>
+<option>Multi-Family</option>
+<option>Luxury Home</option>
+<option>Land / Lot</option>
+<option>Commercial</option>
+</select>
+</div>
+</div>
+<div class="field-row">
+<div class="field">
+<label>Bought or Sold?</label>
+<select name="deal${dealCount}_side">
+<option value="">Select...</option>
+<option>Sold (Represented Seller)</option>
+<option>Bought (Represented Buyer)</option>
+<option>Both Sides</option>
+</select>
+</div>
+<div class="field">
+<label>Sale Price <span class="opt">optional</span></label>
+<input type="text" name="deal${dealCount}_price" placeholder="e.g. $485,000">
+</div>
+</div>
+<div class="field">
+<label>The Story in One Line</label>
+<input type="text" name="deal${dealCount}_story" placeholder="e.g. Multiple offers in 48 hrs, sold $22K over asking">
+</div>
+</div>`;
+container.appendChild(card);
+card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function addTestimonial() {
+testimonialCount++;
+const container = document.getElementById('testimonialsList');
+const card = document.createElement('div');
+card.className = 'testimonial-card';
+card.innerHTML = `
+<div class="deal-label" style="margin-bottom:16px">Review #${testimonialCount}</div>
+<div class="field-group">
+<div class="field-row">
+<div class="field">
+<label>Client Name or Initials</label>
+<input type="text" name="test${testimonialCount}_name" placeholder="e.g. Sarah M.">
+</div>
+<div class="field">
+<label>Source <span class="opt">optional</span></label>
+<select name="test${testimonialCount}_source">
+<option value="">Where is this from?</option>
+<option>Google</option>
+<option>Zillow</option>
+<option>Realtor.com</option>
+<option>Text / Email</option>
+<option>Facebook</option>
+<option>Other</option>
+</select>
+</div>
+</div>
+<div class="field">
+<label>Their Quote</label>
+<textarea name="test${testimonialCount}_quote" style="min-height:80px" placeholder="Paste the review here..."></textarea>
+
+```
+</div>
+</div>`;
+container.appendChild(card);
+card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+```
+
+}
+
+// Progress bar
+window.addEventListener(‘scroll’, () => {
+const doc = document.documentElement;
+const scrollTop = doc.scrollTop || document.body.scrollTop;
+const scrollHeight = doc.scrollHeight - doc.clientHeight;
+const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+document.getElementById(‘progressBar’).style.width = progress + ‘%’;
+});
+
+// Form submit
+document.getElementById(‘intakeForm’).addEventListener(‘submit’, function(e) {
+e.preventDefault();
+document.getElementById(‘intakeForm’).style.display = ‘none’;
+const s = document.getElementById(‘successScreen’);
+s.classList.add(‘visible’);
+s.scrollIntoView({ behavior: ‘smooth’, block: ‘center’ });
+});
+</script>
+
 </body>
 </html>
