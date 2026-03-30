@@ -1,854 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>∞ Universe Simulator</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@300;400;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --void:#000005;--abyss:#01010f;--deep:#020218;
-  --gold:#f2c060;--gold2:#ffdd88;--gold-dim:rgba(242,192,96,0.15);
-  --cyan:#3dd6f5;--cyan-dim:rgba(61,214,245,0.1);
-  --oracle:#c8a8f0;--oracle-dim:rgba(200,168,240,0.08);
-  --crimson:#ff4060;--emerald:#30d890;--amber:#ffaa30;
-  --star-white:#fff8f0;--star-blue:#a0c8ff;--star-red:#ff8060;--star-yellow:#ffe090;
-  --text-dim:rgba(242,232,210,0.4);--text-mid:rgba(242,232,210,0.7);--text-full:#f2e8d2;
-}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--void);cursor:none}
-canvas{position:fixed;top:0;left:0;display:block}
-#c-bg{z-index:1}
-#c-nebula{z-index:2;opacity:0.6}
-#c-stars{z-index:3}
-#c-fx{z-index:4}
-#c-ui{z-index:5}
-
-#hud{position:fixed;inset:0;z-index:10;pointer-events:none;font-family:'Space Mono',monospace}
-
-/* CURSOR */
-#cursor{position:fixed;width:20px;height:20px;pointer-events:none;z-index:999;transform:translate(-50%,-50%)}
-#cursor svg{width:20px;height:20px;animation:cursor-spin 8s linear infinite}
-@keyframes cursor-spin{to{transform:rotate(360deg)}}
-
-/* TOP BAR */
-#topbar{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid rgba(242,192,96,0.08);background:linear-gradient(to bottom,rgba(0,0,5,0.95),transparent);pointer-events:none}
-#title{font-family:'Cinzel Decorative',serif;font-size:16px;color:var(--gold);letter-spacing:0.25em;text-shadow:0 0 40px rgba(242,192,96,0.6)}
-#subtitle{font-size:8px;color:var(--text-dim);letter-spacing:0.35em;text-transform:uppercase;margin-top:3px}
-#cosmos-stats{display:flex;gap:28px}
-.cstat{text-align:right}
-.cstat-val{font-size:15px;font-weight:700;letter-spacing:0.05em}
-.cstat-lbl{font-size:7px;letter-spacing:0.2em;color:var(--text-dim);text-transform:uppercase;margin-top:1px}
-.v-age{color:var(--gold)}
-.v-stars{color:var(--cyan)}
-.v-civs{color:var(--emerald)}
-.v-bh{color:var(--crimson)}
-
-/* BOTTOM BAR */
-#bottombar{position:fixed;bottom:0;left:0;right:0;padding:0 20px 20px;pointer-events:all;background:linear-gradient(transparent,rgba(0,0,5,0.97) 40%)}
-
-#oracle-wrap{max-width:700px;margin:0 auto 12px;position:relative;opacity:0;transition:opacity 0.6s}
-#oracle-wrap.show{opacity:1}
-#oracle-border{border:1px solid rgba(200,168,240,0.25);border-radius:1px;padding:16px 20px 14px;background:rgba(0,0,8,0.9);backdrop-filter:blur(12px);position:relative;overflow:hidden}
-#oracle-border::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--oracle-dim),transparent 60%);pointer-events:none}
-#oracle-label{position:absolute;top:-7px;left:16px;background:var(--void);padding:0 8px;font-size:7px;letter-spacing:0.3em;color:var(--oracle);text-transform:uppercase;opacity:0.8}
-#oracle-text{font-size:12px;line-height:1.9;color:var(--oracle);letter-spacing:0.03em;min-height:20px}
-#oracle-cursor-blink{display:inline-block;width:7px;height:12px;background:var(--oracle);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
-@keyframes blink{50%{opacity:0}}
-#oracle-cursor-blink.hidden{display:none}
-
-#input-row{max-width:700px;margin:0 auto;display:flex;gap:10px}
-#qinput{flex:1;background:rgba(2,2,20,0.95);border:1px solid rgba(242,192,96,0.15);border-radius:1px;color:var(--text-full);font-family:'Space Mono',monospace;font-size:11px;padding:11px 16px;outline:none;letter-spacing:0.08em;transition:border-color 0.3s}
-#qinput:focus{border-color:rgba(200,168,240,0.4)}
-#qinput::placeholder{color:rgba(242,232,210,0.2);letter-spacing:0.12em}
-#askbtn{background:rgba(200,168,240,0.1);border:1px solid rgba(200,168,240,0.3);color:var(--oracle);font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.25em;padding:11px 22px;cursor:pointer;transition:all 0.3s;white-space:nowrap;border-radius:1px}
-#askbtn:hover{background:rgba(200,168,240,0.2);border-color:rgba(200,168,240,0.6);box-shadow:0 0 20px rgba(200,168,240,0.15)}
-#askbtn:disabled{opacity:0.35;cursor:default}
-
-#quickbtns{max-width:700px;margin:0 auto 10px;display:flex;gap:6px;flex-wrap:wrap}
-.qbtn{background:transparent;border:1px solid rgba(242,232,210,0.08);color:var(--text-dim);font-family:'Space Mono',monospace;font-size:8px;padding:5px 11px;cursor:pointer;letter-spacing:0.1em;transition:all 0.25s;border-radius:1px}
-.qbtn:hover{border-color:rgba(200,168,240,0.3);color:var(--oracle)}
-
-/* EVENT LOG */
-#eventlog{position:fixed;left:20px;bottom:130px;width:280px;pointer-events:none;font-size:9px;line-height:2;letter-spacing:0.06em}
-.evline{opacity:0;animation:evfade 0.4s 0.1s forwards;display:flex;gap:8px;align-items:flex-start}
-.evtime{color:rgba(61,214,245,0.45);min-width:42px;flex-shrink:0}
-.evtext{color:var(--text-dim);flex:1}
-.evtype-birth .evtext{color:rgba(255,220,100,0.7)}
-.evtype-death .evtext{color:rgba(255,80,80,0.6)}
-.evtype-life .evtext{color:rgba(48,216,144,0.7)}
-.evtype-civ .evtext{color:rgba(200,168,240,0.8)}
-.evtype-cosmic .evtext{color:rgba(61,214,245,0.7)}
-@keyframes evfade{to{opacity:1}}
-
-/* PROBE PANEL */
-#probe{position:fixed;right:20px;top:65px;width:220px;pointer-events:none;opacity:0;transition:opacity 0.3s}
-#probe.show{opacity:1}
-#probe-inner{background:rgba(0,0,8,0.92);border:1px solid rgba(61,214,245,0.18);padding:14px 16px;backdrop-filter:blur(8px)}
-#probe-name{font-family:'Cinzel',serif;font-size:13px;color:var(--cyan);margin-bottom:10px;letter-spacing:0.1em}
-.prow{display:flex;justify-content:space-between;gap:12px;margin:3px 0;font-size:9px}
-.pkey{color:var(--text-dim);text-transform:uppercase;letter-spacing:0.15em}
-.pval{color:var(--text-full);text-align:right}
-.pval.has-life{color:var(--emerald)}
-.pval.has-civ{color:var(--oracle)}
-.pval.is-bh{color:var(--crimson)}
-#probe-divider{border:none;border-top:1px solid rgba(61,214,245,0.1);margin:8px 0}
-
-/* LEGEND */
-#legend{position:fixed;right:20px;bottom:130px;pointer-events:none;font-size:8px;letter-spacing:0.1em;color:var(--text-dim)}
-.leg-row{display:flex;align-items:center;gap:7px;margin:3px 0}
-.leg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-
-/* SCANNING line */
-#scanline{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,rgba(61,214,245,0.15),transparent);animation:scan 8s linear infinite;pointer-events:none;z-index:6}
-@keyframes scan{0%{top:0%}100%{top:100%}}
-
-/* INTRO */
-#intro{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--void);transition:opacity 1.5s}
-#intro.fade{opacity:0;pointer-events:none}
-#intro h1{font-family:'Cinzel Decorative',serif;font-size:clamp(22px,4vw,48px);color:var(--gold);letter-spacing:0.2em;text-align:center;text-shadow:0 0 60px rgba(242,192,96,0.5);animation:glowpulse 3s ease-in-out infinite}
-@keyframes glowpulse{0%,100%{text-shadow:0 0 40px rgba(242,192,96,0.4)}50%{text-shadow:0 0 80px rgba(242,192,96,0.8),0 0 120px rgba(242,192,96,0.3)}}
-#intro p{font-family:'Cinzel',serif;font-size:11px;color:var(--text-dim);letter-spacing:0.35em;text-transform:uppercase;margin-top:16px;text-align:center}
-#intro-btn{margin-top:40px;background:transparent;border:1px solid rgba(242,192,96,0.3);color:var(--gold);font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.35em;text-transform:uppercase;padding:14px 40px;cursor:pointer;transition:all 0.5s;border-radius:1px}
-#intro-btn:hover{background:rgba(242,192,96,0.08);border-color:var(--gold);box-shadow:0 0 40px rgba(242,192,96,0.2)}
-#bigbang-ring{width:200px;height:200px;border-radius:50%;border:1px solid rgba(242,192,96,0.2);margin-bottom:30px;display:flex;align-items:center;justify-content:center;animation:ring-spin 20s linear infinite}
-@keyframes ring-spin{to{transform:rotate(360deg)}}
-#bigbang-inner{width:140px;height:140px;border-radius:50%;border:1px solid rgba(61,214,245,0.15);display:flex;align-items:center;justify-content:center;animation:ring-spin 12s linear infinite reverse}
-#bigbang-core{width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(242,192,96,0.3),transparent);border:1px solid rgba(242,192,96,0.4);animation:core-pulse 2s ease-in-out infinite}
-@keyframes core-pulse{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.3);opacity:1}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Nexus Interactive</title>
+    <style>
+        /* CSS: Styling and Layout */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevents scrollbars */
+            background-color: #050505; /* Deep space black */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #canvas {
+            display: block;
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+            pointer-events: none; /* Allows the mouse to interact with the canvas behind the text */
+        }
+        
+        h1 {
+            font-size: 4.5rem;
+            letter-spacing: 8px;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8), 0 0 40px rgba(0, 255, 255, 0.5);
+        }
+        
+        p {
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            color: #aaaaaa;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
-<!-- INTRO SCREEN -->
-<div id="intro">
-  <div id="bigbang-ring">
-    <div id="bigbang-inner">
-      <div id="bigbang-core"></div>
+    <div class="overlay">
+        <h1>Cosmic Nexus</h1>
+        <p>Move your mouse to interact with the network</p>
     </div>
-  </div>
-  <h1>UNIVERSE</h1>
-  <p>A living cosmological simulation</p>
-  <button id="intro-btn" onclick="beginUniverse()">IGNITE THE BIG BANG</button>
-</div>
 
-<!-- SCAN LINE -->
-<div id="scanline"></div>
+    <canvas id="canvas"></canvas>
 
-<!-- CANVASES -->
-<canvas id="c-bg"></canvas>
-<canvas id="c-nebula"></canvas>
-<canvas id="c-stars"></canvas>
-<canvas id="c-fx"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
 
-<!-- HUD -->
-<div id="hud">
-  <div id="topbar">
-    <div>
-      <div id="title">∞ UNIVERSE SIMULATOR</div>
-      <div id="subtitle">Real-time cosmological oracle — AI powered</div>
-    </div>
-    <div id="cosmos-stats">
-      <div class="cstat"><div class="cstat-val v-age" id="sv-age">0.0</div><div class="cstat-lbl">Billion Years</div></div>
-      <div class="cstat"><div class="cstat-val v-stars" id="sv-stars">0</div><div class="cstat-lbl">Stars</div></div>
-      <div class="cstat"><div class="cstat-val v-civs" id="sv-civs">0</div><div class="cstat-lbl">Civilizations</div></div>
-      <div class="cstat"><div class="cstat-val v-bh" id="sv-bh">0</div><div class="cstat-lbl">Black Holes</div></div>
-    </div>
-  </div>
+        // Set canvas to full screen
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-  <div id="eventlog"></div>
-
-  <div id="probe">
-    <div id="probe-inner">
-      <div id="probe-name">—</div>
-      <hr id="probe-divider">
-      <div class="prow"><span class="pkey">Type</span><span class="pval" id="p-type">—</span></div>
-      <div class="prow"><span class="pkey">Age</span><span class="pval" id="p-age">—</span></div>
-      <div class="prow"><span class="pkey">Mass</span><span class="pval" id="p-mass">—</span></div>
-      <div class="prow"><span class="pkey">Temp</span><span class="pval" id="p-temp">—</span></div>
-      <div class="prow"><span class="pkey">Planets</span><span class="pval" id="p-planets">—</span></div>
-      <div class="prow"><span class="pkey">Status</span><span class="pval" id="p-life">—</span></div>
-    </div>
-  </div>
-
-  <div id="legend">
-    <div class="leg-row"><div class="leg-dot" style="background:#a0c8ff"></div>Blue supergiant</div>
-    <div class="leg-row"><div class="leg-dot" style="background:#fff8f0"></div>White dwarf / main seq.</div>
-    <div class="leg-row"><div class="leg-dot" style="background:#ffe090"></div>Yellow dwarf (Sol-type)</div>
-    <div class="leg-row"><div class="leg-dot" style="background:#ff8060"></div>Red giant</div>
-    <div class="leg-row"><div class="leg-dot" style="background:#30d890;box-shadow:0 0 6px #30d890"></div>Harbors life</div>
-    <div class="leg-row"><div class="leg-dot" style="background:#c8a8f0;box-shadow:0 0 6px #c8a8f0"></div>Civilization</div>
-    <div class="leg-row"><div class="leg-dot" style="background:#ff4060;border-radius:0"></div>Black hole</div>
-  </div>
-</div>
-
-<!-- BOTTOM ORACLE UI -->
-<div id="bottombar">
-  <div id="oracle-wrap">
-    <div id="oracle-border">
-      <div id="oracle-label">The Cosmos Speaks</div>
-      <div id="oracle-text"><span id="oracle-cursor-blink" class="hidden"></span></div>
-    </div>
-  </div>
-  <div id="quickbtns">
-    <button class="qbtn" onclick="ask('What is the nature of this universe?')">Nature of reality</button>
-    <button class="qbtn" onclick="ask('How was I born?')">Origin of cosmos</button>
-    <button class="qbtn" onclick="ask('Which civilizations are most advanced right now?')">Advanced civilizations</button>
-    <button class="qbtn" onclick="ask('What mysteries remain unsolved here?')">Unsolved mysteries</button>
-    <button class="qbtn" onclick="ask('How will this universe end?')">Fate of universe</button>
-    <button class="qbtn" onclick="ask('Tell me about the most remarkable star')">Remarkable star</button>
-    <button class="qbtn" onclick="ask('What do the intelligent beings believe about their gods?')">Alien theology</button>
-    <button class="qbtn" onclick="ask('Describe a day in the life of a civilization here')">Alien life</button>
-  </div>
-  <div id="input-row">
-    <input id="qinput" type="text" placeholder="ASK THE COSMOS ANYTHING..." maxlength="220"/>
-    <button id="askbtn" onclick="submitQ()">COMMUNE ✦</button>
-  </div>
-</div>
-
-<!-- CURSOR -->
-<div id="cursor">
-  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="10" cy="10" r="7" stroke="rgba(200,168,240,0.5)" stroke-width="0.5"/>
-    <circle cx="10" cy="10" r="1.5" fill="rgba(200,168,240,0.9)"/>
-    <line x1="10" y1="0" x2="10" y2="4" stroke="rgba(200,168,240,0.4)" stroke-width="0.5"/>
-    <line x1="10" y1="16" x2="10" y2="20" stroke="rgba(200,168,240,0.4)" stroke-width="0.5"/>
-    <line x1="0" y1="10" x2="4" y2="10" stroke="rgba(200,168,240,0.4)" stroke-width="0.5"/>
-    <line x1="16" y1="10" x2="20" y2="10" stroke="rgba(200,168,240,0.4)" stroke-width="0.5"/>
-  </svg>
-</div>
-
-<script>
-// ═══════════════════════════════════════════════════════
-// UNIVERSE SIMULATOR — Full simulation engine
-// ═══════════════════════════════════════════════════════
-
-const cvs = {
-  bg: document.getElementById('c-bg'),
-  neb: document.getElementById('c-nebula'),
-  str: document.getElementById('c-stars'),
-  fx: document.getElementById('c-fx'),
-};
-const ctx = {};
-for(const k in cvs) ctx[k] = cvs[k].getContext('2d');
-
-let W=window.innerWidth, H=window.innerHeight;
-function resize(){
-  W=window.innerWidth; H=window.innerHeight;
-  for(const k in cvs){cvs[k].width=W;cvs[k].height=H;}
-  drawBG();
-}
-resize();
-window.addEventListener('resize',resize);
-
-// ── Universe State ──────────────────────────────────
-const U = {
-  age: 0,
-  stars: [],
-  nebulae: [],
-  blackHoles: [],
-  particles: [],
-  shockwaves: [],
-  glows: [],
-  events: [],
-  civCount: 0,
-  starCount: 0,
-  bhCount: 0,
-  tick: 0,
-  started: false,
-  hoveredStar: null,
-  expansionRate: 1.0,
-};
-
-// ── Star name generator ──────────────────────────────
-const PRE=['Ker','Vel','Zar','Ath','Lys','Vor','Nyx','Aur','Cet','Mir','Pho','Lyr','Ara','Tel','Eri','Ori','Tau','Cep','Dra','Lyc','Sol','Alb','Nor','Mel','Sha','Oph','Peg','Ind','Sco','Vir'];
-const SUF=['-I','-II','-III','-VII','a','b','α','β','γ','δ','ε','Prime','Nova','Magna','Major','Minoris','Centauri','-X','-Omega'];
-const CNAMES=['Aureth','Velkanar','Zython','Mythara','Solindra','Kethavos','Nyrathi','Cerelon','Dolvaan','Thyxara','Malketh','Orvanthis','Pelixar','Querath','Solvane'];
-const CTECHS=['Type I','Type II','Type III (emerging)'];
-const CBELIEFS=['Stellar worship','Simulation theory','Quantum consciousness','Void philosophy','Ancestor veneration','Cosmic harmony','Deterministic fate'];
-
-function starName(){return PRE[Math.random()*PRE.length|0]+SUF[Math.random()*SUF.length|0]}
-function civName(){return CNAMES[Math.random()*CNAMES.length|0]+' '+['Empire','Collective','Communion','Sovereignty','Network','Bloom','Assembly'][Math.random()*7|0]}
-
-// ── Star factory ────────────────────────────────────
-const TYPES=[
-  {n:'Blue Supergiant',c:'#a0c8ff',rc:0.04,rm:[20,100],rt:[20000,50000],rl:0.01,rp:0.3},
-  {n:'Yellow Dwarf',c:'#ffe090',rc:0.28,rm:[0.5,2],rt:[4500,7000],rl:0.18,rp:0.8},
-  {n:'Red Dwarf',c:'#ff9060',rc:0.32,rm:[0.1,0.5],rt:[2500,4000],rl:0.05,rp:0.5},
-  {n:'White Giant',c:'#f8f8ff',rc:0.18,rm:[2,8],rt:[7000,12000],rl:0.08,rp:0.6},
-  {n:'Red Giant',c:'#ff7050',rc:0.12,rm:[0.5,3],rt:[3000,5000],rl:0.06,rp:0.4},
-  {n:'Neutron Star',c:'#d0e8ff',rc:0.04,rm:[1.4,3],rt:[600000,1000000],rl:0.001,rp:0.1},
-  {n:'White Dwarf',c:'#e8f0ff',rc:0.02,rm:[0.5,1.4],rt:[8000,200000],rl:0.001,rp:0.05},
-];
-
-function mkStar(x,y){
-  let tp=null,r=Math.random(),acc=0;
-  for(const t of TYPES){acc+=t.rc;if(r<acc){tp=t;break;}}
-  if(!tp)tp=TYPES[1];
-  const hasLife=Math.random()<tp.rl;
-  const hasCiv=hasLife&&Math.random()<0.12;
-  const baseR=1+Math.pow(Math.random(),1.5)*3.5;
-  return {
-    x:x??Math.random()*W, y:y??Math.random()*H,
-    vx:(Math.random()-.5)*0.04, vy:(Math.random()-.5)*0.04,
-    r:baseR, baseR,
-    color:tp.c,
-    type:tp,
-    typeName:tp.n,
-    alpha:0.4+Math.random()*0.6,
-    phase:Math.random()*Math.PI*2,
-    twinkle:0.003+Math.random()*0.015,
-    age:Math.random()*8,
-    mass:tp.rm[0]+Math.random()*(tp.rm[1]-tp.rm[0]),
-    temp:tp.rt[0]+Math.random()*(tp.rt[1]-tp.rt[0]),
-    planets:Math.random()<tp.rp?Math.floor(Math.random()*12)+1:0,
-    hasLife, hasCiv,
-    civName:hasCiv?civName():null,
-    civAge:hasCiv?Math.random()*5000:0,
-    civTech:hasCiv?CTECHS[Math.random()*CTECHS.length|0]:null,
-    civBelief:hasCiv?CBELIEFS[Math.random()*CBELIEFS.length|0]:null,
-    name:starName(),
-    born:U.age,
-    wobble:{x:0,y:0,t:Math.random()*100},
-    brightness:1,
-    dying:false,
-    dead:false,
-    pulseAmt:0,
-  };
-}
-
-function mkNebula(){
-  const cx=Math.random()*W, cy=Math.random()*H;
-  const hue=[240,280,200,320,180,260][Math.floor(Math.random()*6)];
-  return {cx,cy,hue,
-    r:80+Math.random()*220,
-    alpha:0.012+Math.random()*0.025,
-    rot:Math.random()*Math.PI,
-    stretchX:0.5+Math.random()*1.5, stretchY:0.5+Math.random()*1.2,
-    drift:{x:(Math.random()-.5)*0.004,y:(Math.random()-.5)*0.004},
-    phase:Math.random()*100,
-    puff:Math.random()*Math.PI*2,
-  };
-}
-
-function mkBH(x,y){
-  return {
-    x:x??Math.random()*W*.8+W*.1, y:y??Math.random()*H*.8+H*.1,
-    r:5+Math.random()*9,
-    accrR:0,
-    mass:1e6+Math.random()*1e9,
-    angle:0, anglev:0.003+Math.random()*0.01,
-    name:'∅-'+Math.floor(Math.random()*9000+1000),
-    particles:[],
-    lastEat:0,
-  };
-}
-
-function mkParticle(x,y,vx,vy,color,life){
-  return {x,y,vx,vy,color,life:life??1,maxLife:life??1,r:0.5+Math.random()*1.5};
-}
-
-function mkShockwave(x,y,color,maxR){
-  return {x,y,r:2,maxR:maxR??120,color,alpha:0.6,speed:3};
-}
-
-function mkGlow(x,y,r,color,duration){
-  return {x,y,r,color,alpha:0.8,duration,t:0};
-}
-
-// ── Initialize ───────────────────────────────────────
-for(let i=0;i<380;i++) U.stars.push(mkStar());
-for(let i=0;i<10;i++) U.nebulae.push(mkNebula());
-for(let i=0;i<3;i++) U.blackHoles.push(mkBH());
-
-// ── Background (static) ─────────────────────────────
-function drawBG(){
-  const bg=ctx.bg;
-  bg.fillStyle='#000005';
-  bg.fillRect(0,0,W,H);
-  // Deep space gradient
-  const g=bg.createRadialGradient(W*.5,H*.5,0,W*.5,H*.5,Math.max(W,H)*.7);
-  g.addColorStop(0,'rgba(2,2,30,0.8)');
-  g.addColorStop(0.4,'rgba(1,1,12,0.5)');
-  g.addColorStop(1,'rgba(0,0,5,0)');
-  bg.fillStyle=g;
-  bg.fillRect(0,0,W,H);
-  // Micro stars (static BG)
-  for(let i=0;i<600;i++){
-    const x=Math.random()*W,y=Math.random()*H;
-    const r=Math.random();
-    bg.globalAlpha=0.05+Math.random()*0.15;
-    bg.fillStyle='#f2e8d2';
-    bg.beginPath();
-    bg.arc(x,y,r,0,Math.PI*2);
-    bg.fill();
-  }
-  bg.globalAlpha=1;
-}
-
-// ── Nebulae drawing ──────────────────────────────────
-function drawNebulae(t){
-  const nc=ctx.neb;
-  nc.clearRect(0,0,W,H);
-  for(const n of U.nebulae){
-    n.cx+=n.drift.x; n.cy+=n.drift.y;
-    if(n.cx<-n.r)n.cx=W+n.r; if(n.cx>W+n.r)n.cx=-n.r;
-    if(n.cy<-n.r)n.cy=H+n.r; if(n.cy>H+n.r)n.cy=-n.r;
-    nc.save();
-    nc.translate(n.cx,n.cy);
-    nc.rotate(n.rot+t*0.0001);
-    // Multi-layer nebula
-    for(let layer=0;layer<4;layer++){
-      const lr=n.r*(0.4+layer*0.2);
-      const la=n.alpha*(1-layer*0.15);
-      const g=nc.createRadialGradient(-lr*0.1,-lr*0.1,0,0,0,lr);
-      const h=n.hue+layer*15;
-      g.addColorStop(0,`hsla(${h},70%,40%,${la*2})`);
-      g.addColorStop(0.4,`hsla(${h+20},60%,30%,${la})`);
-      g.addColorStop(1,`hsla(${h},50%,10%,0)`);
-      nc.fillStyle=g;
-      nc.scale(n.stretchX,n.stretchY);
-      nc.beginPath();
-      nc.arc(0,0,lr,0,Math.PI*2);
-      nc.fill();
-      nc.scale(1/n.stretchX,1/n.stretchY);
-    }
-    nc.restore();
-  }
-}
-
-// ── Star drawing ─────────────────────────────────────
-function drawStars(t){
-  const sc=ctx.str;
-  sc.clearRect(0,0,W,H);
-  for(const s of U.stars){
-    if(s.dead)continue;
-    s.phase+=s.twinkle;
-    s.age+=0.0002;
-    s.wobble.t+=0.01;
-    s.x+=s.vx+Math.sin(s.wobble.t)*0.005;
-    s.y+=s.vy+Math.cos(s.wobble.t*1.3)*0.005;
-    // Wrap
-    if(s.x<-20)s.x=W+20; if(s.x>W+20)s.x=-20;
-    if(s.y<-20)s.y=H+20; if(s.y>H+20)s.y=-20;
-    // BH attraction
-    for(const bh of U.blackHoles){
-      const dx=bh.x-s.x, dy=bh.y-s.y;
-      const d2=dx*dx+dy*dy;
-      if(d2<bh.r*bh.r*4){
-        // Devour
-        if(!s.dying){
-          s.dying=true;
-          addEvent('death',`${s.name} consumed by ${bh.name}`);
-          for(let i=0;i<30;i++) U.particles.push(mkParticle(s.x,s.y,(Math.random()-.5)*4,(Math.random()-.5)*4,'#ff6040',1.5));
-          U.shockwaves.push(mkShockwave(bh.x,bh.y,'#ff4060',60));
-          setTimeout(()=>{s.dead=true;},800);
+        // Track mouse position
+        let mouse = {
+            x: null,
+            y: null,
+            radius: (canvas.height / 80) * (canvas.width / 80)
         }
-        continue;
-      }
-      if(d2<80000){
-        const f=bh.mass*0.000000001/d2;
-        s.vx+=dx*f; s.vy+=dy*f;
-      }
-    }
-    const twink=Math.sin(s.phase)*0.15;
-    const alpha=Math.min(1,s.alpha+twink)*(s.dying?0.3:1);
-    const r=s.r*(1+twink*0.3)*(s.dying?1.5:1);
-    // Glow layers
-    if(s.hasCiv){
-      sc.globalAlpha=0.06;
-      const cg=sc.createRadialGradient(s.x,s.y,0,s.x,s.y,r*12);
-      cg.addColorStop(0,'#c8a8f0'); cg.addColorStop(1,'transparent');
-      sc.fillStyle=cg; sc.beginPath(); sc.arc(s.x,s.y,r*12,0,Math.PI*2); sc.fill();
-    }
-    if(s.hasLife&&!s.hasCiv){
-      sc.globalAlpha=0.05;
-      const lg=sc.createRadialGradient(s.x,s.y,0,s.x,s.y,r*8);
-      lg.addColorStop(0,'#30d890'); lg.addColorStop(1,'transparent');
-      sc.fillStyle=lg; sc.beginPath(); sc.arc(s.x,s.y,r*8,0,Math.PI*2); sc.fill();
-    }
-    // Outer glow
-    sc.globalAlpha=alpha*0.15;
-    const og=sc.createRadialGradient(s.x,s.y,0,s.x,s.y,r*5);
-    og.addColorStop(0,s.color); og.addColorStop(1,'transparent');
-    sc.fillStyle=og; sc.beginPath(); sc.arc(s.x,s.y,r*5,0,Math.PI*2); sc.fill();
-    // Mid glow
-    sc.globalAlpha=alpha*0.4;
-    const mg=sc.createRadialGradient(s.x,s.y,0,s.x,s.y,r*2.5);
-    mg.addColorStop(0,s.color); mg.addColorStop(1,'transparent');
-    sc.fillStyle=mg; sc.beginPath(); sc.arc(s.x,s.y,r*2.5,0,Math.PI*2); sc.fill();
-    // Core
-    sc.globalAlpha=alpha;
-    sc.fillStyle=s.color;
-    sc.beginPath(); sc.arc(s.x,s.y,r,0,Math.PI*2); sc.fill();
-    // Diffraction spikes for bright stars
-    if(s.r>2.5){
-      sc.globalAlpha=alpha*0.25;
-      sc.strokeStyle=s.color;
-      sc.lineWidth=0.5;
-      const len=r*8;
-      sc.beginPath();sc.moveTo(s.x-len,s.y);sc.lineTo(s.x+len,s.y);sc.stroke();
-      sc.beginPath();sc.moveTo(s.x,s.y-len);sc.lineTo(s.x,s.y+len);sc.stroke();
-      // Diagonal spikes
-      const len2=len*0.5;
-      sc.globalAlpha=alpha*0.12;
-      sc.beginPath();sc.moveTo(s.x-len2,s.y-len2);sc.lineTo(s.x+len2,s.y+len2);sc.stroke();
-      sc.beginPath();sc.moveTo(s.x+len2,s.y-len2);sc.lineTo(s.x-len2,s.y+len2);sc.stroke();
-    }
-    sc.globalAlpha=1;
-  }
-  // Black holes
-  for(const bh of U.blackHoles){
-    bh.angle+=bh.anglev;
-    bh.accrR=bh.r*3.5;
-    // Accretion disk
-    const layers=5;
-    for(let l=0;l<layers;l++){
-      const lr=bh.accrR*(1+l*0.4);
-      const la=0.3-l*0.05;
-      sc.globalAlpha=la;
-      const ag=sc.createRadialGradient(bh.x,bh.y,lr*0.7,bh.x,bh.y,lr);
-      ag.addColorStop(0,'#ff9030'); ag.addColorStop(0.5,'#ff4060'); ag.addColorStop(1,'transparent');
-      sc.strokeStyle='transparent';
-      sc.fillStyle=ag;
-      sc.save(); sc.translate(bh.x,bh.y); sc.rotate(bh.angle+l*0.3); sc.scale(1,0.22);
-      sc.beginPath(); sc.arc(0,0,lr,0,Math.PI*2); sc.fill();
-      sc.restore();
-    }
-    // Core (void)
-    sc.globalAlpha=1;
-    sc.fillStyle='#000000';
-    sc.beginPath(); sc.arc(bh.x,bh.y,bh.r,0,Math.PI*2); sc.fill();
-    // Event horizon glow
-    sc.globalAlpha=0.5;
-    const hg=sc.createRadialGradient(bh.x,bh.y,bh.r*0.8,bh.x,bh.y,bh.r*1.8);
-    hg.addColorStop(0,'rgba(255,80,60,0.8)'); hg.addColorStop(1,'transparent');
-    sc.fillStyle=hg; sc.beginPath(); sc.arc(bh.x,bh.y,bh.r*1.8,0,Math.PI*2); sc.fill();
-    sc.globalAlpha=1;
-    // Label
-    sc.font='7px "Space Mono"'; sc.fillStyle='rgba(255,80,60,0.5)'; sc.textAlign='center';
-    sc.fillText(bh.name,bh.x,bh.y+bh.r*2.5+8);
-  }
-}
 
-// ── FX layer ─────────────────────────────────────────
-function drawFX(t){
-  const fc=ctx.fx;
-  fc.clearRect(0,0,W,H);
-  // Particles
-  U.particles=U.particles.filter(p=>{
-    p.x+=p.vx; p.y+=p.vy;
-    p.vx*=0.97; p.vy*=0.97;
-    p.life-=p.maxLife/60;
-    if(p.life<=0)return false;
-    fc.globalAlpha=p.life/p.maxLife*0.8;
-    fc.fillStyle=p.color;
-    fc.beginPath(); fc.arc(p.x,p.y,p.r,0,Math.PI*2); fc.fill();
-    return true;
-  });
-  // Shockwaves
-  U.shockwaves=U.shockwaves.filter(sw=>{
-    sw.r+=sw.speed; sw.alpha-=0.015;
-    if(sw.alpha<=0)return false;
-    fc.globalAlpha=sw.alpha;
-    fc.strokeStyle=sw.color; fc.lineWidth=1.5;
-    fc.beginPath(); fc.arc(sw.x,sw.y,sw.r,0,Math.PI*2); fc.stroke();
-    return true;
-  });
-  // Glows
-  U.glows=U.glows.filter(g=>{
-    g.t++;
-    const progress=g.t/g.duration;
-    if(progress>1)return false;
-    fc.globalAlpha=Math.sin(progress*Math.PI)*0.4;
-    const gg=fc.createRadialGradient(g.x,g.y,0,g.x,g.y,g.r);
-    gg.addColorStop(0,g.color); gg.addColorStop(1,'transparent');
-    fc.fillStyle=gg; fc.beginPath(); fc.arc(g.x,g.y,g.r,0,Math.PI*2); fc.fill();
-    return true;
-  });
-  fc.globalAlpha=1;
-}
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
 
-// ── Simulation tick ──────────────────────────────────
-let spawnBurstDone=false;
-function simTick(){
-  U.tick++;
-  U.age+=0.0004;
-  // Occasional star birth
-  if(U.tick%80===0 && U.stars.filter(s=>!s.dead).length<450){
-    const ns=mkStar();
-    U.stars.push(ns);
-    for(let i=0;i<12;i++) U.particles.push(mkParticle(ns.x,ns.y,(Math.random()-.5)*2,(Math.random()-.5)*2,'#ffe090',1.2));
-    U.shockwaves.push(mkShockwave(ns.x,ns.y,'#ffe090',40));
-    if(Math.random()<0.08) addEvent('birth',`New star born: ${ns.name} (${ns.typeName})`);
-  }
-  // Occasional star death
-  if(U.tick%200===0){
-    const living=U.stars.filter(s=>!s.dead&&!s.dying);
-    if(living.length>0 && Math.random()<0.3){
-      const victim=living[Math.random()*living.length|0];
-      const isSN=victim.mass>8||Math.random()<0.2;
-      victim.dying=true;
-      if(isSN){
-        addEvent('death',`Supernova: ${victim.name}`);
-        for(let i=0;i<60;i++) U.particles.push(mkParticle(victim.x,victim.y,(Math.random()-.5)*8,(Math.random()-.5)*8,'#ffcc60',2.5));
-        U.shockwaves.push(mkShockwave(victim.x,victim.y,'#ffcc60',200));
-        U.glows.push(mkGlow(victim.x,victim.y,150,'#ffcc60',120));
-        // Sometimes leaves a black hole
-        if(victim.mass>20&&Math.random()<0.4){
-          setTimeout(()=>{U.blackHoles.push(mkBH(victim.x,victim.y));addEvent('cosmic',`Black hole formed at ${victim.name}\'s remnant`);},1000);
+        // Create Particle blueprint
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            // Method to draw individual particle
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = '#00ffff';
+                ctx.fill();
+            }
+            // Check particle position, calculate mouse interaction, move particle
+            update() {
+                // Keep particles inside the screen
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
+                }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+
+                // Collision detection between mouse and particle
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < mouse.radius + this.size) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) {
+                        this.x += 10;
+                    }
+                    if (mouse.x > this.x && this.x > this.size * 10) {
+                        this.x -= 10;
+                    }
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) {
+                        this.y += 10;
+                    }
+                    if (mouse.y > this.y && this.y > this.size * 10) {
+                        this.y -= 10;
+                    }
+                }
+                
+                // Move particle
+                this.x += this.directionX;
+                this.y += this.directionY;
+                // Draw particle
+                this.draw();
+            }
         }
-      } else {
-        addEvent('death',`${victim.name} fades to white dwarf`);
-        for(let i=0;i<20;i++) U.particles.push(mkParticle(victim.x,victim.y,(Math.random()-.5)*2,(Math.random()-.5)*2,'#d0e8ff',1.5));
-      }
-      setTimeout(()=>{victim.dead=true;},1500);
-    }
-  }
-  // Civ events
-  if(U.tick%350===0){
-    const civStars=U.stars.filter(s=>s.hasCiv&&!s.dead);
-    if(civStars.length>0 && Math.random()<0.5){
-      const cs=civStars[Math.random()*civStars.length|0];
-      cs.civAge+=50+Math.random()*200;
-      const evts=[`${cs.civName} achieves interplanetary travel`,`${cs.civName} sends first signal`,`${cs.civName} discovers faster-than-light theory`,`${cs.civName} colonizes nearby system`,`${cs.civName} solves climate collapse`,`${cs.civName} achieves digital consciousness`,`${cs.civName} goes silent — reason unknown`];
-      addEvent('civ',evts[Math.random()*evts.length|0]);
-    }
-    // New civ emerges
-    if(Math.random()<0.15){
-      const lifeStars=U.stars.filter(s=>s.hasLife&&!s.hasCiv&&!s.dead);
-      if(lifeStars.length>0){
-        const ls=lifeStars[Math.random()*lifeStars.length|0];
-        ls.hasCiv=true; ls.civName=civName(); ls.civAge=0;
-        ls.civTech=CTECHS[0]; ls.civBelief=CBELIEFS[Math.random()*CBELIEFS.length|0];
-        addEvent('civ',`First civilization emerges on ${ls.name}: the ${ls.civName}`);
-        U.glows.push(mkGlow(ls.x,ls.y,80,'#c8a8f0',180));
-      }
-    }
-  }
-  // Life emergence
-  if(U.tick%500===0 && Math.random()<0.3){
-    const barren=U.stars.filter(s=>!s.hasLife&&s.planets>0&&!s.dead&&(s.typeName==='Yellow Dwarf'||s.typeName==='Red Dwarf'));
-    if(barren.length>0){
-      const bs=barren[Math.random()*barren.length|0];
-      bs.hasLife=true;
-      addEvent('life',`Life emerges around ${bs.name}`);
-    }
-  }
-  // Update stats
-  U.civCount=U.stars.filter(s=>s.hasCiv&&!s.dead).length;
-  U.starCount=U.stars.filter(s=>!s.dead).length;
-  U.bhCount=U.blackHoles.length;
-  document.getElementById('sv-age').textContent=U.age.toFixed(2);
-  document.getElementById('sv-stars').textContent=U.starCount;
-  document.getElementById('sv-civs').textContent=U.civCount;
-  document.getElementById('sv-bh').textContent=U.bhCount;
-  // Remove very old dead stars
-  if(U.stars.length>600) U.stars=U.stars.filter(s=>!s.dead);
-}
 
-// ── Event log ────────────────────────────────────────
-function addEvent(type,text){
-  U.events.unshift({type,text,time:U.age});
-  const el=document.getElementById('eventlog');
-  const div=document.createElement('div');
-  div.className=`evline evtype-${type}`;
-  const timeStr=U.age.toFixed(2)+'G';
-  div.innerHTML=`<span class="evtime">${timeStr}</span><span class="evtext">${text}</span>`;
-  el.insertBefore(div,el.firstChild);
-  while(el.children.length>10) el.removeChild(el.lastChild);
-}
+        // Create particle array
+        function init() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 2) - 1;
+                let directionY = (Math.random() * 2) - 1;
+                let color = '#00ffff';
 
-// ── Hover probe ──────────────────────────────────────
-let mx=W/2,my=H/2;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX; my=e.clientY;
-  document.getElementById('cursor').style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`;
-  let closest=null,minD=25;
-  for(const s of U.stars){
-    if(s.dead)continue;
-    const d=Math.hypot(s.x-mx,s.y-my);
-    if(d<minD){minD=d;closest=s;}
-  }
-  for(const bh of U.blackHoles){
-    const d=Math.hypot(bh.x-mx,bh.y-my);
-    if(d<30){closest={name:bh.name,typeName:'Black Hole',age:U.age,mass:bh.mass/1e6+' M☉',temp:'∞',planets:0,hasLife:false,hasCiv:false,isBH:true};minD=d;}
-  }
-  const pp=document.getElementById('probe');
-  if(closest){
-    pp.classList.add('show');
-    document.getElementById('probe-name').textContent=closest.name;
-    document.getElementById('p-type').textContent=closest.typeName;
-    document.getElementById('p-type').className='pval'+(closest.isBH?' is-bh':'');
-    document.getElementById('p-age').textContent=closest.isBH?'Eternal':(closest.age?.toFixed(2)+' Gyr');
-    document.getElementById('p-mass').textContent=closest.isBH?(closest.mass):(closest.mass?.toFixed(1)+' M☉');
-    document.getElementById('p-temp').textContent=closest.isBH?closest.temp:Math.round(closest.temp||0).toLocaleString()+' K';
-    document.getElementById('p-planets').textContent=closest.planets||0;
-    let lifeStr='—'; let lifeCls='pval';
-    if(closest.hasCiv){lifeStr=closest.civName||'Civilization';lifeCls='pval has-civ';}
-    else if(closest.hasLife){lifeStr='Microbial life';lifeCls='pval has-life';}
-    else if(closest.planets>0){lifeStr='Barren';}
-    document.getElementById('p-life').textContent=lifeStr;
-    document.getElementById('p-life').className=lifeCls;
-  } else {
-    pp.classList.remove('show');
-  }
-});
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
 
-// ── MAIN RENDER LOOP ─────────────────────────────────
-let lastT=0;
-function frame(t){
-  if(!U.started){requestAnimationFrame(frame);return;}
-  const dt=t-lastT; lastT=t;
-  drawNebulae(t);
-  drawStars(t);
-  drawFX(t);
-  if(U.tick%3===0) simTick();
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
+        // Draw lines between particles that are close enough
+        function connect() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    
+                    if (distance < (canvas.width/7) * (canvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        ctx.strokeStyle = 'rgba(0, 255, 255,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
 
-// ── BIG BANG intro ───────────────────────────────────
-function beginUniverse(){
-  const intro=document.getElementById('intro');
-  intro.classList.add('fade');
-  // Big bang particles
-  const cx=W/2,cy=H/2;
-  for(let i=0;i<200;i++){
-    const angle=Math.random()*Math.PI*2;
-    const spd=2+Math.random()*15;
-    const colors=['#ffee80','#ff9040','#ff6060','#80d0ff','#ffffff'];
-    U.particles.push(mkParticle(cx,cy,Math.cos(angle)*spd,Math.sin(angle)*spd,colors[Math.random()*5|0],3+Math.random()*2));
-  }
-  for(let i=0;i<5;i++) U.shockwaves.push(mkShockwave(cx,cy,'#ffee80',W*0.8));
-  U.glows.push(mkGlow(cx,cy,300,'#ffdd88',200));
-  addEvent('cosmic','The Big Bang — universe ignites');
-  addEvent('cosmic','Hydrogen and helium form in first minutes');
-  addEvent('cosmic','First stars ignite — the cosmic dawn begins');
-  setTimeout(()=>{
-    U.started=true;
-    intro.remove();
-    // Seed initial events
-    setTimeout(()=>addEvent('birth',`First star ignites: ${U.stars[0].name}`),800);
-    setTimeout(()=>addEvent('cosmic','Galaxies begin to coalesce from primordial filaments'),2000);
-    setTimeout(()=>addEvent('life','Complex chemistry emerges on warm rocky worlds'),4000);
-  },1200);
-}
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
 
-// ── ORACLE AI ────────────────────────────────────────
-let oracleTyping=false;
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connect();
+        }
 
-function buildUniverseContext(){
-  const civs=U.stars.filter(s=>s.hasCiv&&!s.dead);
-  const lifeBearers=U.stars.filter(s=>s.hasLife&&!s.hasCiv&&!s.dead);
-  const supernovae=U.events.filter(e=>e.type==='death'&&e.text.includes('Supernova'));
-  const recentCivEvents=U.events.filter(e=>e.type==='civ').slice(0,6);
-  const notable=U.stars.filter(s=>!s.dead).sort((a,b)=>b.mass-a.mass).slice(0,3);
-  return `You are the living voice of a procedurally-simulated universe. Respond as if you ARE the cosmos itself — ancient, poetic, vast, and wise. Speak in first person as the universe. Be evocative, mysterious, and beautiful. Use metaphor. Reference the actual simulation data below to make your answer feel grounded and real. Keep responses to 2-4 sentences — profound and concise.
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            mouse.radius = ((innerHeight/80) * (innerWidth/80));
+            init();
+        });
 
-UNIVERSE STATE:
-- Age: ${U.age.toFixed(2)} billion years
-- Active stars: ${U.starCount} (including ${U.blackHoles.length} black holes)
-- Civilizations: ${U.civCount}
+        // Remove mouse position when leaving screen
+        window.addEventListener('mouseout', function() {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
 
-CIVILIZATIONS RIGHT NOW:
-${civs.slice(0,5).map(s=>`- ${s.civName} around star ${s.name} (${s.typeName}), age ${s.civAge.toFixed(0)} years, ${s.civTech}, beliefs: ${s.civBelief}`).join('\n')||'None yet'}
-
-LIFE-BEARING WORLDS: ${lifeBearers.length} (microbial only)
-
-RECENT COSMIC EVENTS:
-${recentCivEvents.map(e=>e.text).join('\n')||'None recorded'}
-
-MOST MASSIVE STARS:
-${notable.map(s=>`${s.name} (${s.typeName}, ${s.mass.toFixed(1)} solar masses)`).join(', ')}
-
-SUPERNOVAE WITNESSED: ${supernovae.length}`;
-}
-
-async function ask(question){
-  if(oracleTyping)return;
-  oracleTyping=true;
-  const btn=document.getElementById('askbtn');
-  btn.disabled=true;
-  const wrap=document.getElementById('oracle-wrap');
-  const textEl=document.getElementById('oracle-text');
-  const cursor=document.getElementById('oracle-cursor-blink');
-  wrap.classList.add('show');
-  textEl.textContent='';
-  cursor.classList.remove('hidden');
-  textEl.appendChild(cursor);
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system:buildUniverseContext(),
-        messages:[{role:'user',content:question}]
-      })
-    });
-    const data=await res.json();
-    const reply=data?.content?.[0]?.text||'The cosmos is silent...';
-    // Typewriter effect
-    textEl.textContent='';
-    textEl.appendChild(cursor);
-    let i=0;
-    const speed=18;
-    function type(){
-      if(i<reply.length){
-        textEl.insertBefore(document.createTextNode(reply[i]),cursor);
-        i++;
-        setTimeout(type,speed+Math.random()*8);
-      } else {
-        cursor.classList.add('hidden');
-        oracleTyping=false;
-        btn.disabled=false;
-      }
-    }
-    type();
-    // Visual FX on oracle answer
-    const cx=W/2+Math.random()*100-50, cy=H/2+Math.random()*100-50;
-    U.glows.push(mkGlow(cx,cy,120,'#c8a8f0',160));
-    for(let j=0;j<25;j++) U.particles.push(mkParticle(cx,cy,(Math.random()-.5)*3,(Math.random()-.5)*3,'#c8a8f0',2));
-  }catch(e){
-    textEl.textContent='The cosmos whispers beyond reach…';
-    cursor.classList.add('hidden');
-    oracleTyping=false;
-    btn.disabled=false;
-  }
-}
-
-function submitQ(){
-  const v=document.getElementById('qinput').value.trim();
-  if(!v)return;
-  document.getElementById('qinput').value='';
-  ask(v);
-}
-document.getElementById('qinput').addEventListener('keydown',e=>{if(e.key==='Enter')submitQ();});
-
-// Ambient oracle — whispers on its own occasionally
-let lastWhisper=0;
-const WHISPERS=['What silence lies between the stars?','I have witnessed ten thousand supernovae.','Every atom in your body was forged in my furnaces.','The civilizations ask if they are alone. They are not.','Time is my breath. Space is my body.','Some questions have no answer. I am one of them.'];
-setInterval(()=>{
-  if(!oracleTyping && U.started && U.tick>500 && Math.random()<0.15){
-    const w=WHISPERS[Math.random()*WHISPERS.length|0];
-    const wrap=document.getElementById('oracle-wrap');
-    const textEl=document.getElementById('oracle-text');
-    const cursor=document.getElementById('oracle-cursor-blink');
-    wrap.classList.add('show');
-    textEl.textContent='';
-    cursor.classList.remove('hidden');
-    textEl.appendChild(cursor);
-    oracleTyping=true;
-    let i=0;
-    function type(){
-      if(i<w.length){textEl.insertBefore(document.createTextNode(w[i]),cursor);i++;setTimeout(type,24);}
-      else{cursor.classList.add('hidden');oracleTyping=false;setTimeout(()=>{if(!oracleTyping)wrap.classList.remove('show');},5000);}
-    }
-    type();
-  }
-},15000);
-</script>
+        init();
+        animate();
+    </script>
 </body>
 </html>
